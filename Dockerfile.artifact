@@ -42,7 +42,7 @@ RUN \
   apt-get update && \
   gcc="gcc" && \
   if xx-info is-cross; then gcc="gcc-$(xx-info triple)"; fi; \
-  apt-get install -y "${gcc}" "libglib2.0-dev:${darch}" "libcap-dev:${darch}" "libseccomp-dev:${darch}"
+  apt-get install -y "${gcc}" "libglib2.0-dev:${darch}" "libcap-dev:${darch}" "libseccomp-dev:${darch}" "libssl-dev:${darch}"
 COPY Dockerfile.artifact.d/meson-cross /meson-cross
 RUN meson_setup_flags="--default-library=both" ; \
  if xx-info is-cross; then meson_setup_flags="${meson_setup_flags} --cross-file=/meson-cross/$(xx-info) -Dprefix=/usr/local/$(xx-info)"; fi ; \
