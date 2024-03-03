@@ -46,6 +46,34 @@ jobs:
         mv /tmp/slirpbuilds/linux_ppc64le/slirp4netns /tmp/artifact/slirp4netns-ppc64le
         mv /tmp/slirpbuilds/linux_riscv64/slirp4netns /tmp/artifact/slirp4netns-riscv64
         echo "${SOURCE_DATE_EPOCH}" >/tmp/artifact/SOURCE_DATE_EPOCH
+    - name: "Build deb"
+      run: |
+        VERSION="100:$(/tmp/artifact/slirp4netns-x86_64 -v | head -1 | cut -d " " -f 3)-ipv6"
+        PKG_PATH="/tmp/slirp4netns_${VERSION}_amd64"
+        mkdir -p "${PKG_PATH}/usr/bin"
+        mkdir -p "${PKG_PATH}/usr/share/man/man1"
+        mkdir -p "${PKG_PATH}/DEBIAN"
+        gzip ./slirp4netns.1
+        mv ./slirp4netns.1.gz "${PKG_PATH}/usr/share/man/man1/"
+        cp /tmp/artifact/slirp4netns-x86_64 "${PKG_PATH}/usr/bin/slirp4netns"
+        chmod 0755 "${PKG_PATH}/usr/bin/slirp4netns"
+        echo "Package: slirp4netns
+        Maintainer: root <root@localhost.localdomain>
+        Version: ${VERSION}
+        Architecture: amd64
+        Section: devel
+        Priority: optional
+        Homepage: https://github.com/rootless-containers/slirp4netns
+        Description: User-mode networking for unprivileged network namespaces
+         slirp4netns provides user-mode networking for unprivileged network
+         namespaces.
+         .
+         slirp4netns allows connecting a network namespace to the Internet in a
+         completely unprivileged way, by connecting a TAP device in a network
+         namespace to the usermode TCP/IP stack (\"slirp\")." > "${PKG_PATH}/DEBIAN/control"
+        dpkg-deb --build --root-owner-group "${PKG_PATH}"
+        export DEB=$(basename $(echo "${PKG_PATH}")).deb
+        mv "/tmp/${DEB}" "/tmp/artifact/${DEB//:/_}"
     - name: "SHA256SUMS"
       run: (cd /tmp/artifact; sha256sum *) | tee /tmp/SHA256SUMS
     - name: "The sha256sum of the SHA256SUMS file"
